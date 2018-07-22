@@ -8,27 +8,14 @@
 
 #if remove
 #Remove-Module -Name Request-Imasparql
-
 Import-Module -Name $moduleAbsPath
 
 # Sample
+Push-Location -LiteralPath $repositoryRoot
 
 # define query
-# https://sparql.crssnky.xyz/imas/ 内の「千早のセリフテキストを取得」のクエリ
-[string]$query = @'
-PREFIX schema: <http://schema.org/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX imas: <https://sparql.crssnky.xyz/imasrdf/URIs/imas-schema.ttl#>
-
-SELECT *
-WHERE {
-  ?s rdf:type imas:ScriptText;
-     imas:Source ?source;
-     schema:text ?text.
-  ?source schema:name ?name;
-     filter(contains(str(?name),"千早")) #コメント
-} #order by ?text
-'@
+[string]$query = 
+    Get-Content -LiteralPath ./Sample/Query/getChihayaScriptText.rq -Raw -Encoding UTF8
 
 # get data
 [psobject[]]$result = 
@@ -36,5 +23,7 @@ WHERE {
 
 # format and print
 $result |
-    select -Property name,text |
+    select -Property name, text |
     Write-Output
+
+Pop-Location
