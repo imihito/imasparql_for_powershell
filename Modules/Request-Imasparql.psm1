@@ -10,12 +10,32 @@
     [ImasparqlOutputFormat]::text = New-Object -TypeName 'Collections.Generic.Dictionary[string,string[]]'
 }
 
+
+<#
+.Synopsis
+Query im@sparql
+
+.DESCRIPTION
+query im@sparql.
+This function has internal cache.
+Cache key is query text and outputformat, value is query result.
+So cache contains query text and outputformat, return cache result.
+If Force switch, always access im@sparql and no cache result.
+
+.OUTPUTS
+[psobject[]] # json, csv
+[xml]        # xml
+[string[]]   # text
+#>
 function Request-Imasparql {
     [CmdletBinding()]Param (
+        # SPARQL Query non escaped
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$Query,
+        # OutputFormat default = json. json,csv returns [posobject[]]. xml returns [xml]. text returns [string[]]
         [ImasparqlOutputFormat]$OutputFormat = [ImasparqlOutputFormat]::json,
+        # no use cache switch.
         [switch]$Force
     )
     Set-StrictMode -Version Latest
@@ -23,7 +43,8 @@ function Request-Imasparql {
 
     # キャッシュにあれば情報取得＆リターン
     [psobject]$dataFromCache = $null
-    if ( $cache[$OutputFormat].TryGetValue( $Query , [ref]$dataFromCache ) ) {
+    if ( -not $Force -and 
+         $cache[$OutputFormat].TryGetValue( $Query , [ref]$dataFromCache ) ) {
         Write-Information 'use cache'
         Write-Information ('output = ' + $OutputFormat)
         Write-Information ('query = ' + $Query)
@@ -55,8 +76,10 @@ function Request-Imasparql {
         csv  { ConvertFrom-Csv -InputObject $dlTxt }
         text { $dlTxt -split "`n" }
     }
-    
-    $cache[$OutputFormat].Add( $Query , $result )
+
+    if ( -not $Force ) {
+        $cache[$OutputFormat].Add( $Query , $result )
+    }
     return $result
 }
 
