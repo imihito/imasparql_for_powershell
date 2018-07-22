@@ -1,5 +1,7 @@
 # imasparql_for_powershell
+
 use [im@sparql](https://sparql.crssnky.xyz/imas/) by PowerShell
+im@sparqlをPowerShellから使うためのコード
 
 im@sparql 
 
